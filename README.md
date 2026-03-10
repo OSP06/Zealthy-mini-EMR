@@ -308,7 +308,7 @@ npm run setup && npm run dev
 |---|---|
 | Framework | Next.js 14 (App Router) |
 | Language | TypeScript |
-| Database | SQLite (local) — easily swappable to PostgreSQL |
+| Database | PostgreSQL |
 | ORM | Prisma |
 | Auth | iron-session (signed & encrypted cookies) |
 | Password hashing | bcryptjs |
