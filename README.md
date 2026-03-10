@@ -4,77 +4,145 @@ A full-stack healthcare application built with **Next.js 14**, **Prisma ORM**, *
 
 ---
 
-## Table of Contents
-
-1. [Tech Stack](#tech-stack)
-2. [Project Structure](#project-structure)
-3. [Features](#features)
-4. [Local Setup](#local-setup)
-5. [Deploying to Vercel](#deploying-to-vercel)
-6. [Deploying to Railway / Render / Fly.io](#deploying-to-railway--render--flyio)
-7. [Environment Variables](#environment-variables)
-8. [API Reference](#api-reference)
-9. [Sample Credentials](#sample-credentials)
-10. [Design Decisions](#design-decisions)
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router) |
 | Language | TypeScript |
-| Database | SQLite (local) / PostgreSQL (production) |
-| ORM | Prisma 5 |
-| Auth | iron-session (signed, encrypted cookies) |
+| Database | SQLite (local) — easily swappable to PostgreSQL |
+| ORM | Prisma |
+| Auth | iron-session (signed & encrypted cookies) |
 | Password hashing | bcryptjs |
 | Date handling | date-fns |
-| Styling | Tailwind CSS + custom CSS design tokens |
+| Styling | Tailwind CSS |
+| Deployment | Vercel |
 
 ---
 
 ## Features
 
-### Section 1 — Admin EMR (/admin)
+The application is divided into two main areas:
 
-- **Patient Registry**: table showing all patients with appointment count, prescription count, enrollment date. Searchable by name or email.
-- **Patient Detail** (/admin/patients/:id):
-  - View full profile: name, email, DOB, phone, address
-  - Edit patient info via modal (including password reset)
-  - Tabbed view: Appointments | Prescriptions
-- **Appointments CRUD**:
-  - Schedule new appointments: provider (free text), datetime, repeat schedule, optional end date
-  - Edit and delete appointments
-  - Optimistic UI: row fades out instantly on delete, reverts if server returns an error
-  - Conflict detection: warns if a new appointment is within 30 minutes of an existing one
-  - End recurring appointments via the end date field
-- **Prescriptions CRUD**:
-  - Prescribe from seeded medications and dosages dropdowns
-  - Set quantity, next refill date, and refill schedule (weekly / monthly / quarterly)
-  - Edit and delete with optimistic UI
-- **New Patient Form**: name, email, password (plaintext for testing per spec), DOB, phone, address
-- **Toast Notifications**: every create/update/delete triggers a success, info, or error toast
+### Admin EMR (`/admin`)
 
-### Section 2 — Patient Portal (/)
+- Patient Registry with search
+- Patient detail view and profile editing
+- Appointment management (create, edit, delete, recurring)
+- Prescription management
+- New patient registration
+- Conflict detection for appointments
+- Confirmation modals for destructive actions
+- Status updates for appointments and prescriptions
+- Toast notifications for actions
 
-- **Login Page**: email + password. Unauthenticated users accessing /portal/* are redirected instantly by middleware.ts before the page renders (no flash).
-- **Dashboard** (/portal):
-  - Amber alert banner if any appointments or refills fall within the next 7 days
-  - Stats: total appointments, active prescriptions, urgent items this week
-  - Appointment preview cards with next computed occurrence
-  - Medication preview cards with next refill date
-  - Patient info section
-- **Appointments Page** (/portal/appointments):
-  - Recurring appointments expanded out for the next 3 months
-  - Sorted chronologically with "Today" / "Tomorrow" / "Xd" countdown
-  - Amber highlight for appointments within 7 days
-- **Medications Page** (/portal/medications):
-  - All prescriptions with next refill date and countdown
-  - Each card expands to show the full refill schedule for the next 3 months
-  - Amber highlight for refills due within 7 days
+### Patient Portal (`/portal`)
+
+- Secure login using email and password
+- Dashboard with upcoming alerts
+- Appointment timeline with recurrence expansion
+- Medication tracking and refill schedules
+- Server-side route protection using middleware
 
 ---
+
+## Application Navigation Guide (How to Open & Explore)
+
+### 1. Open Admin Dashboard
+
+Navigate to:
+
+```
+https://zealthy-mini-emr-black.vercel.app/admin
+```
+
+This opens the **Patient Registry** where you can:
+
+- Search for patients
+- View appointment and prescription counts
+- Click a patient to view their details
+
+---
+
+### 2. Review Patient Details
+
+Inside a patient page you can:
+
+- View profile details
+- Edit profile information
+- Reset password
+- Manage appointments
+- Manage prescriptions
+
+---
+
+### 3. Manage Appointments (Admin)
+
+You can:
+
+- Create a new appointment
+- Edit appointment details
+- Delete appointments
+- Create recurring appointments
+- Detect time conflicts automatically
+
+If another appointment exists within **30 minutes**, the system warns the admin.
+
+---
+
+### 4. Manage Prescriptions (Admin)
+
+You can:
+
+- Create prescriptions from seeded medications
+- Edit dosage or refill schedule
+- Delete prescriptions
+- Update prescription status
+
+Prescription statuses include:
+
+- Active
+- Paused
+- Completed
+- Discontinued
+
+---
+
+### 5. Patient Portal
+
+Navigate to:
+
+```
+https://zealthy-mini-emr-black.vercel.app
+```
+
+Log in using seeded patient credentials.
+
+Inside the portal patients can:
+
+- View upcoming appointments
+- See refill reminders
+- Track medication schedules
+- View alerts for upcoming medical actions
+
+---
+## Sample Credentials
+
+Use the following accounts to log into the **Patient Portal**.
+
+| Patient | Email | Password |
+|---|---|---|
+| Mark Johnson | mark@some-email-provider.net | Password123! |
+| Lisa Smith | lisa@some-email-provider.net | Password123! |
+
+The **Admin EMR** is accessible directly at:
+
+```
+/admin
+```
+
+---
+
 
 ## Project Structure
 
@@ -237,7 +305,7 @@ npm run setup && npm run dev
 
 ## Design Decisions
 
-**SQLite + Prisma**: Zero infrastructure for local dev. Switching to PostgreSQL is a one-line change in schema.prisma — no application code changes needed.
+**Prisma**: Zero infrastructure for local dev. Switching to PostgreSQL is a one-line change in schema.prisma — no application code changes needed.
 
 **iron-session**: Stores session data in a signed, encrypted cookie. No Redis or DB table needed. Stateless, works in Vercel's serverless environment.
 
