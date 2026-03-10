@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+// appointmentid
 
 export async function PUT(
   req: NextRequest,
