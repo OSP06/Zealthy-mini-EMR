@@ -26,6 +26,8 @@ model Appointment {
   datetime  DateTime
   repeat    String   @default("none") // none, daily, weekly, monthly
   endDate   DateTime?
+  status    String   @default("active") // active | completed | cancelled
+  notes     String?  // reason for cancellation or completion notes
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -38,6 +40,8 @@ model Prescription {
   quantity        Int
   refillOn        DateTime
   refillSchedule  String   @default("monthly")
+  status          String   @default("active") // active | discontinued | completed
+  notes           String?  // reason for discontinuation
   userId          Int
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())
