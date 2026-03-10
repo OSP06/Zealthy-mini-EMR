@@ -96,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Content */}
+      {/* Contents */}
       <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
         {children}
       </main>

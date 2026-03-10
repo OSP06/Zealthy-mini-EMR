@@ -49,7 +49,7 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* Search */}
+      {/* Searchs */}
       <div className="animate-fade-up stagger-1" style={{ marginBottom: '20px' }}>
         <input
           className="form-input"
