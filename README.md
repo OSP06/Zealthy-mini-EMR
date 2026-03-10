@@ -1,6 +1,6 @@
 # Zealthy Mini-EMR & Patient Portal
 
-A full-stack healthcare application built with **Next.js 14**, **Prisma ORM**, **SQLite** (swappable to PostgreSQL), and **iron-session** for auth. Submitted as part of the Zealthy Full Stack Engineering Exercise.
+A full-stack healthcare application built with **Next.js 14**, **Prisma ORM**, **PostgreSQL** , and **iron-session** for auth. Submitted as part of the Zealthy Full Stack Engineering Exercise.
 
 ---
 ## Live Application
