@@ -75,7 +75,7 @@ A full-stack healthcare application built with **Next.js 14**, **Prisma ORM**, *
   - Amber highlight for refills due within 7 days
 
 ---
-<!-- 
+
 ## Project Structure
 
 ```
@@ -134,7 +134,7 @@ zealthy-emr/
 ```
 
 ---
-
+<!-- 
 ## Local Setup
 
 ### Prerequisites
