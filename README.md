@@ -3,6 +3,16 @@
 A full-stack healthcare application built with **Next.js 14**, **Prisma ORM**, **SQLite** (swappable to PostgreSQL), and **iron-session** for auth. Submitted as part of the Zealthy Full Stack Engineering Exercise.
 
 ---
+## Live Application
+
+Deployed on Vercel.
+
+- **Patient Portal:** https://zealthy-mini-emr-black.vercel.app  
+- **Admin EMR:** https://zealthy-mini-emr-black.vercel.app/admin  
+
+> For the purpose of this exercise, the Admin interface is accessible directly so reviewers can explore the application without needing an admin login.
+
+---
 
 ## Features
 
