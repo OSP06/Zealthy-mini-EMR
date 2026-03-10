@@ -4,22 +4,6 @@ A full-stack healthcare application built with **Next.js 14**, **Prisma ORM**, *
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript |
-| Database | SQLite (local) — easily swappable to PostgreSQL |
-| ORM | Prisma |
-| Auth | iron-session (signed & encrypted cookies) |
-| Password hashing | bcryptjs |
-| Date handling | date-fns |
-| Styling | Tailwind CSS |
-| Deployment | Vercel |
-
----
-
 ## Features
 
 The application is divided into two main areas:
@@ -320,6 +304,23 @@ npm run setup && npm run dev
 **Toast notifications**: A context-based ToastProvider wraps the entire app. Any component calls useToast().showToast(message, type) to surface feedback. Toasts auto-dismiss after 3.5 seconds and stack in the bottom-right corner.
 
 ---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Database | SQLite (local) — easily swappable to PostgreSQL |
+| ORM | Prisma |
+| Auth | iron-session (signed & encrypted cookies) |
+| Password hashing | bcryptjs |
+| Date handling | date-fns |
+| Styling | Tailwind CSS |
+| Deployment | Vercel |
+
+---
+
 ## Future Enhancements
 
 ### 1. AI Scribe — Appointment Notes with Patient-Visible Summary
