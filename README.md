@@ -132,53 +132,13 @@ zealthy-emr/
 ├── vercel.json                           # Vercel deployment config
 └── README.md
 ```
-
----
-<!-- 
-## Local Setup
-
-### Prerequisites
-
-- Node.js 18+
-- npm 9+
-
-### Steps
-
-```bash
-# 1. Unzip and enter the project
-unzip zealthy-emr.zip
-cd zealthy-emr
-
-# 2. Install dependencies
-npm install
-
-# 3. Generate Prisma client
-npx prisma generate
-
-# 4. Create the SQLite database and push schema
-npx prisma db push
-
-# 5. Seed sample data
-npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
-
-# 6. Start dev server
-npm run dev
-```
-
-Visit http://localhost:3000
-
-One-liner shortcut (steps 3-5 combined):
-```bash
-npm run setup && npm run dev
-```
-
 ---
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |---|---|---|
-| DATABASE_URL | YES | SQLite: file:./dev.db  PostgreSQL: postgresql://... |
+| DATABASE_URL | YES | PostgreSQL: postgresql://... |
 | SESSION_SECRET | YES | Min 32-char random string for encrypting cookies |
 
 For local dev, both are already set in .env. For production, set them in your platform's dashboard. Never commit .env to git with real secrets.
@@ -241,6 +201,44 @@ New patients created via /admin/new-patient can immediately log in to the Portal
 
 ---
 
+## Local Setup
+
+### Prerequisites
+
+- Node.js 18+
+- npm 9+
+
+### Steps
+
+```bash
+# 1. Unzip and enter the project
+unzip zealthy-emr.zip
+cd zealthy-emr
+
+# 2. Install dependencies
+npm install
+
+# 3. Generate Prisma client
+npx prisma generate
+
+# 4. Create the SQLite database and push schema
+npx prisma db push
+
+# 5. Seed sample data
+npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
+
+# 6. Start dev server
+npm run dev
+```
+
+Visit http://localhost:3000
+
+One-liner shortcut (steps 3-5 combined):
+```bash
+npm run setup && npm run dev
+```
+---
+<!-- 
 ## Design Decisions
 
 **SQLite + Prisma**: Zero infrastructure for local dev. Switching to PostgreSQL is a one-line change in schema.prisma — no application code changes needed.
