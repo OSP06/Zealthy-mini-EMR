@@ -33,6 +33,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     { href: '/portal', label: 'Dashboard', icon: '⊡' },
     { href: '/portal/appointments', label: 'Appointments', icon: '📅' },
     { href: '/portal/medications', label: 'Medications', icon: '💊' },
+    { href: '/portal/history', label: 'Medical History', icon: '🗂️' },
   ];
 
   return (

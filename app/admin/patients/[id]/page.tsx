@@ -5,8 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { MEDICATIONS, DOSAGES, REPEAT_OPTIONS, REFILL_SCHEDULES } from '@/lib/constants';
 import { useToast } from '@/components/ToastProvider';
 
-interface Appt { id: number; provider: string; datetime: string; repeat: string; endDate?: string | null; }
-interface Rx   { id: number; medication: string; dosage: string; quantity: number; refillOn: string; refillSchedule: string; }
+interface Appt { id: number; provider: string; datetime: string; repeat: string; endDate?: string | null; status?: string; notes?: string; }
+interface Rx   { id: number; medication: string; dosage: string; quantity: number; refillOn: string; refillSchedule: string; status?: string; notes?: string; }
 interface Patient { id: number; name: string; email: string; phone?: string; dateOfBirth?: string; address?: string; appointments: Appt[]; prescriptions: Rx[]; }
 
 function fmtDT(d: string) { return new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }); }
@@ -278,6 +278,8 @@ export default function PatientDetailPage() {
   const [activeTab, setActiveTab] = useState<'appointments' | 'prescriptions'>('appointments');
   const [deletingAppt, setDeletingAppt] = useState<number | null>(null);
   const [deletingRx, setDeletingRx] = useState<number | null>(null);
+  const [statusAppt, setStatusAppt] = useState<number | null>(null);
+  const [statusRx, setStatusRx] = useState<number | null>(null);
 
   async function load() {
     const r = await fetch(`/api/patients/${id}`);
@@ -310,6 +312,70 @@ export default function PatientDetailPage() {
       showToast(`${medName} prescription removed`, 'info');
     } catch { load(); showToast('Failed to delete', 'error'); }
     finally { setDeletingRx(null); }
+  }
+
+  async function cancelAppt(apptId: number, providerName: string) {
+    const reason = prompt(`Reason for cancelling appointment with ${providerName}? (optional)`);
+    if (reason === null) return;
+    setStatusAppt(apptId);
+    try {
+      const res = await fetch(`/api/patients/${id}/appointments/${apptId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled', notes: reason || undefined }),
+      });
+      if (!res.ok) { showToast('Failed to cancel appointment', 'error'); return; }
+      setPatient(p => p ? {
+        ...p,
+        appointments: p.appointments.map(a =>
+          a.id === apptId ? { ...a, status: 'cancelled', notes: reason || undefined } : a
+        ),
+      } : p);
+      showToast(`Appointment with ${providerName} cancelled`, 'info');
+    } catch { showToast('Failed to cancel', 'error'); }
+    finally { setStatusAppt(null); }
+  }
+
+  async function completeAppt(apptId: number, providerName: string) {
+    setStatusAppt(apptId);
+    try {
+      const res = await fetch(`/api/patients/${id}/appointments/${apptId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' }),
+      });
+      if (!res.ok) { showToast('Failed to mark as completed', 'error'); return; }
+      setPatient(p => p ? {
+        ...p,
+        appointments: p.appointments.map(a =>
+          a.id === apptId ? { ...a, status: 'completed' } : a
+        ),
+      } : p);
+      showToast(`Appointment with ${providerName} marked as completed`, 'success');
+    } catch { showToast('Failed to update', 'error'); }
+    finally { setStatusAppt(null); }
+  }
+
+  async function discontinueRx(rxId: number, medName: string) {
+    const reason = prompt(`Reason for discontinuing ${medName}? (optional)`);
+    if (reason === null) return;
+    setStatusRx(rxId);
+    try {
+      const res = await fetch(`/api/patients/${id}/prescriptions/${rxId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'discontinued', notes: reason || undefined }),
+      });
+      if (!res.ok) { showToast('Failed to discontinue prescription', 'error'); return; }
+      setPatient(p => p ? {
+        ...p,
+        prescriptions: p.prescriptions.map(r =>
+          r.id === rxId ? { ...r, status: 'discontinued', notes: reason || undefined } : r
+        ),
+      } : p);
+      showToast(`${medName} discontinued`, 'info');
+    } catch { showToast('Failed to update', 'error'); }
+    finally { setStatusRx(null); }
   }
 
   function handleApptSaved(saved: Appt) {
@@ -345,7 +411,7 @@ export default function PatientDetailPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <div style={{ width: '56px', height: '56px', background: '#ccfbef', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f766e', fontWeight: 700, fontSize: '20px' }}>
-              {patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              {patient.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
             </div>
             <div>
               <h1 style={{ margin: '0 0 3px', fontSize: '26px' }}>{patient.name}</h1>
@@ -396,22 +462,36 @@ export default function PatientDetailPage() {
           ) : (
             <div style={{ background: 'white', border: '1px solid #d1fae5', borderRadius: '12px', overflow: 'hidden' }}>
               <table className="data-table">
-                <thead><tr><th>Provider</th><th>Date & Time</th><th>Repeat</th><th>Ends On</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Provider</th><th>Date & Time</th><th>Repeat</th><th>Ends On</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {patient.appointments.map(appt => (
-                    <tr key={appt.id} style={{ opacity: deletingAppt === appt.id ? 0.4 : 1, transition: 'opacity 0.2s' }}>
-                      <td style={{ fontWeight: 600 }}>{appt.provider}</td>
-                      <td>{fmtDT(appt.datetime)}</td>
-                      <td><span className="badge badge-teal">{appt.repeat === 'none' ? 'One-time' : appt.repeat}</span></td>
-                      <td style={{ color: '#4a7c73', fontSize: '13px' }}>{appt.endDate ? fmtDate(appt.endDate) : '—'}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => setApptModal({ open: true, appt })}>Edit</button>
-                          <button className="btn btn-danger" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => deleteAppt(appt.id, appt.provider)} disabled={deletingAppt === appt.id}>Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {patient.appointments.map(appt => {
+                    const status = appt.status || 'active';
+                    const isInactive = status !== 'active';
+                    return (
+                      <tr key={appt.id} style={{ opacity: deletingAppt === appt.id ? 0.4 : 1, transition: 'opacity 0.2s', background: isInactive ? '#fafafa' : undefined }}>
+                        <td style={{ fontWeight: 600, color: isInactive ? '#94a3b8' : '#0f2623' }}>{appt.provider}</td>
+                        <td style={{ color: isInactive ? '#94a3b8' : undefined }}>{fmtDT(appt.datetime)}</td>
+                        <td><span className="badge badge-teal">{appt.repeat === 'none' ? 'One-time' : appt.repeat}</span></td>
+                        <td style={{ color: '#4a7c73', fontSize: '13px' }}>{appt.endDate ? fmtDate(appt.endDate) : '—'}</td>
+                        <td>
+                          {status === 'active' && <span className="badge badge-teal">Active</span>}
+                          {status === 'completed' && <span className="badge" style={{ background: '#eff6ff', color: '#1d4ed8' }}>Completed</span>}
+                          {status === 'cancelled' && <span className="badge" style={{ background: '#fef2f2', color: '#b91c1c' }}>Cancelled</span>}
+                          {appt.notes && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={appt.notes}>📝 {appt.notes}</div>}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            {!isInactive && <>
+                              <button className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => setApptModal({ open: true, appt })}>Edit</button>
+                              <button className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px', color: '#1d4ed8', borderColor: '#bfdbfe' }} onClick={() => completeAppt(appt.id, appt.provider)} disabled={statusAppt === appt.id}>✓ Done</button>
+                              <button className="btn btn-danger" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => cancelAppt(appt.id, appt.provider)} disabled={statusAppt === appt.id}>Cancel</button>
+                            </>}
+                            <button className="btn btn-danger" style={{ fontSize: '12px', padding: '4px 10px', opacity: 0.7 }} onClick={() => deleteAppt(appt.id, appt.provider)} disabled={deletingAppt === appt.id}>Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -429,23 +509,36 @@ export default function PatientDetailPage() {
           ) : (
             <div style={{ background: 'white', border: '1px solid #d1fae5', borderRadius: '12px', overflow: 'hidden' }}>
               <table className="data-table">
-                <thead><tr><th>Medication</th><th>Dosage</th><th>Qty</th><th>Next Refill</th><th>Schedule</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Medication</th><th>Dosage</th><th>Qty</th><th>Next Refill</th><th>Schedule</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {patient.prescriptions.map(rx => (
-                    <tr key={rx.id} style={{ opacity: deletingRx === rx.id ? 0.4 : 1, transition: 'opacity 0.2s' }}>
-                      <td style={{ fontWeight: 600 }}>{rx.medication}</td>
-                      <td>{rx.dosage}</td>
-                      <td>{rx.quantity}</td>
-                      <td>{fmtDate(rx.refillOn)}</td>
-                      <td><span className="badge badge-slate">{rx.refillSchedule}</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => setRxModal({ open: true, rx })}>Edit</button>
-                          <button className="btn btn-danger" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => deleteRx(rx.id, rx.medication)} disabled={deletingRx === rx.id}>Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {patient.prescriptions.map(rx => {
+                    const status = rx.status || 'active';
+                    const isInactive = status !== 'active';
+                    return (
+                      <tr key={rx.id} style={{ opacity: deletingRx === rx.id ? 0.4 : 1, transition: 'opacity 0.2s', background: isInactive ? '#fafafa' : undefined }}>
+                        <td style={{ fontWeight: 600, color: isInactive ? '#94a3b8' : '#0f2623' }}>{rx.medication}</td>
+                        <td style={{ color: isInactive ? '#94a3b8' : undefined }}>{rx.dosage}</td>
+                        <td style={{ color: isInactive ? '#94a3b8' : undefined }}>{rx.quantity}</td>
+                        <td style={{ color: isInactive ? '#94a3b8' : undefined }}>{fmtDate(rx.refillOn)}</td>
+                        <td><span className="badge badge-slate">{rx.refillSchedule}</span></td>
+                        <td>
+                          {status === 'active' && <span className="badge badge-teal">Active</span>}
+                          {status === 'discontinued' && <span className="badge" style={{ background: '#fffbeb', color: '#92400e' }}>Discontinued</span>}
+                          {status === 'completed' && <span className="badge" style={{ background: '#eff6ff', color: '#1d4ed8' }}>Completed</span>}
+                          {rx.notes && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rx.notes}>📝 {rx.notes}</div>}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            {!isInactive && <>
+                              <button className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => setRxModal({ open: true, rx })}>Edit</button>
+                              <button className="btn btn-danger" style={{ fontSize: '12px', padding: '4px 10px', background: '#fffbeb', color: '#92400e' }} onClick={() => discontinueRx(rx.id, rx.medication)} disabled={statusRx === rx.id}>Discontinue</button>
+                            </>}
+                            <button className="btn btn-danger" style={{ fontSize: '12px', padding: '4px 10px', opacity: 0.7 }} onClick={() => deleteRx(rx.id, rx.medication)} disabled={deletingRx === rx.id}>Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

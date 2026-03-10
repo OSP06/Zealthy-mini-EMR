@@ -211,23 +211,19 @@ New patients created via /admin/new-patient can immediately log in to the Portal
 ### Steps
 
 ```bash
-# 1. Unzip and enter the project
-unzip zealthy-emr.zip
-cd zealthy-emr
-
-# 2. Install dependencies
+# 1. Install dependencies
 npm install
 
-# 3. Generate Prisma client
+# 2. Generate Prisma client
 npx prisma generate
 
-# 4. Create the SQLite database and push schema
+# 3. Create the SQLite database and push schema
 npx prisma db push
 
-# 5. Seed sample data
+# 4. Seed sample data
 npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
 
-# 6. Start dev server
+# 5. Start dev server
 npm run dev
 ```
 
@@ -254,3 +250,47 @@ npm run setup && npm run dev
 **Conflict detection**: When scheduling, the datetime input checks against all existing appointments in real time. A warning appears if the new time is within 30 minutes of any existing appointment for that patient.
 
 **Toast notifications**: A context-based ToastProvider wraps the entire app. Any component calls useToast().showToast(message, type) to surface feedback. Toasts auto-dismiss after 3.5 seconds and stack in the bottom-right corner.
+
+---
+## Future Enhancements
+
+### 1. AI Scribe — Appointment Notes with Patient-Visible Summary
+
+**What it is**: When a provider finishes an appointment, they dictate or type raw clinical notes directly in the admin EMR. An AI (Claude API / GPT-4) rewrites those notes into a clean, plain-English summary that the patient can read in their portal.
+
+**How it would work**:
+
+1. Add a `rawNotes` (provider-only) and `patientSummary` (patient-visible) field to the `Appointment` model in `schema.prisma`
+2. On the admin patient detail page, add a "Add Appointment Notes" modal with a textarea for the provider's raw notes
+3. On save, send the raw notes to a new API route `/api/appointments/:id/summarize` which calls the Claude API:
+   ```
+   System: You are a medical scribe. Rewrite the following clinical notes into a clear, friendly, 2-3 sentence plain-English summary that a patient can understand. Avoid jargon.
+   User: [raw provider notes]
+   ```
+4. Store both `rawNotes` (never shown to patient) and `patientSummary` (shown in portal) in the DB
+5. In the Patient Portal's Medical History page, show the AI-generated summary under each completed appointment card
+
+**Schema addition needed**:
+```prisma
+model Appointment {
+  // ...existing fields
+  rawNotes       String?   // provider-only, never exposed to patient
+  patientSummary String?   // AI-generated plain English, shown in portal
+}
+```
+
+**Why it matters**: Closes the information gap between what the provider records and what the patient actually understands about their visit. Zero extra work for the provider — they write notes they'd write anyway.
+
+---
+
+### 2. Admin Patient History Summary Dashboard
+
+**What it is**: A dedicated analytics panel on the admin side for each patient — a single-page view giving the provider a bird's-eye overview of the patient's full medical history without having to scroll through individual records.
+
+**What it would show**:
+
+- **Medication timeline**: a horizontal bar chart (one row per medication) showing when each course started, ended, or was discontinued — with dosage labeled on each bar
+- **Appointment frequency chart**: a month-by-month bar chart of appointment volume over the past 12 months
+- **Prescription history table**: grouped by medication name, showing all historical courses sorted oldest-to-newest with dosage changes highlighted (same diff logic as patient history page)
+- **Key metrics strip**: total appointments attended vs cancelled (attendance rate), number of unique medications over time, longest-running active prescription, months as a patient
+- **Alerts panel**: overdue refills, no appointments in the past 90 days, same medication at escalating doses (potential flag)
