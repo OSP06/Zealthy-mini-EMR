@@ -238,7 +238,7 @@ One-liner shortcut (steps 3-5 combined):
 npm run setup && npm run dev
 ```
 ---
-<!-- 
+
 ## Design Decisions
 
 **SQLite + Prisma**: Zero infrastructure for local dev. Switching to PostgreSQL is a one-line change in schema.prisma — no application code changes needed.
@@ -253,4 +253,4 @@ npm run setup && npm run dev
 
 **Conflict detection**: When scheduling, the datetime input checks against all existing appointments in real time. A warning appears if the new time is within 30 minutes of any existing appointment for that patient.
 
-**Toast notifications**: A context-based ToastProvider wraps the entire app. Any component calls useToast().showToast(message, type) to surface feedback. Toasts auto-dismiss after 3.5 seconds and stack in the bottom-right corner. -->
+**Toast notifications**: A context-based ToastProvider wraps the entire app. Any component calls useToast().showToast(message, type) to surface feedback. Toasts auto-dismiss after 3.5 seconds and stack in the bottom-right corner.
