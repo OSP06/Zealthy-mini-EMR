@@ -1,9 +1,3 @@
 {
-  "buildCommand": "npx prisma generate && next build",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "SESSION_SECRET": "@session_secret"
-  }
+  "buildCommand": "npx prisma generate && next build"
 }
