@@ -240,19 +240,6 @@ refillSchedule values: weekly, monthly, quarterly
 
 ---
 
-## Sample Credentials
-
-Seeded automatically when you run prisma/seed.ts:
-
-| Patient | Email | Password |
-|---|---|---|
-| Mark Johnson | mark@some-email-provider.net | Password123! |
-| Lisa Smith | lisa@some-email-provider.net | Password123! |
-
-New patients created via /admin/new-patient can immediately log in to the Portal.
-
----
-
 ## Local Setup
 
 ### Prerequisites
