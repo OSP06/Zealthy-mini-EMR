@@ -6,6 +6,7 @@ export async function GET() {
   if (!session.userId) {
     return NextResponse.json({ user: null });
   }
+
   return NextResponse.json({
     user: {
       id: session.userId,
