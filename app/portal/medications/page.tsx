@@ -90,7 +90,7 @@ export default function PortalMedications() {
                     boxShadow: isUrgent ? '0 2px 12px rgba(251,191,36,0.15)' : '0 1px 4px rgba(15,118,110,0.06)',
                   }}
                 >
-                  {/* Header row */}
+                  {/* Header */}
                   <div
                     onClick={() => setExpanded(isOpen ? null : rx.id)}
                     style={{
@@ -138,7 +138,7 @@ export default function PortalMedications() {
                     </div>
                   </div>
 
-                  {/* Expanded refill schedule */}
+                  {/* Expanded refill schedules */}
                   {isOpen && (
                     <div style={{
                       borderTop: '1px solid #f0fdf9',

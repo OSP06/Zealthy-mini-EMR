@@ -9,7 +9,9 @@ function getAllOccurrences(start: Date, repeat: string, endDate: Date | null, to
   const occ: Date[] = [];
   const now = new Date();
   let cur = new Date(start);
-  // fast-forward past dates
+
+  // fast-forward past date
+  
   while (isBefore(cur, now)) {
     if (repeat === 'none') return [];
     cur = advance(cur, repeat);
